@@ -20,11 +20,11 @@ public sealed class Tests
     public void Insert()
     {
         DoublyLinkedList<char> list = [];
-        list.Insert('b', 0);
-        list.Insert('c', 1);
+        list.Insert('c', 0);
+        list.Insert('d', 1);
 
         list.AssertValid();
-        Assert.IsTrue(Enumerable.SequenceEqual(['b', 'c'], list));
+        Assert.IsTrue(Enumerable.SequenceEqual(['c', 'd'], list));
     }
 
     [TestMethod]
