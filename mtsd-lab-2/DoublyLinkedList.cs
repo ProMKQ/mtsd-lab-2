@@ -1,46 +1,57 @@
-﻿namespace mtsd_lab_2;
+﻿using System.Collections;
 
-public sealed class Node<T>(T value)
+namespace mtsd_lab_2;
+
+public sealed class Node<T>
 {
-    public Node<T>? Previous;
-    public Node<T>? Next;
-    public T Value = value;
+    public Node<T> Previous;
+    public Node<T> Next;
+    public T Value;
 
-    public static void CreateLinkedNode(T value, ref Node<T> previous, ref Node<T> next)
+    internal Node(T value)
     {
-        Node<T> node = new(value)
-        {
-            Previous = previous,
-            Next = next
-        };
+        Value = value;
+        Previous = this;
+        Next = this;
+    }
 
+    internal Node(T value, Node<T> previous, Node<T> next)
+    {
+        Value = value;
+        Previous = previous;
+        Next = next;
+    }
+
+    internal static void CreateLinkedNode(T value, ref Node<T> previous, ref Node<T> next)
+    {
+        Node<T> node = new(value, previous, next);
         previous.Next = node;
         next.Previous = node;
     }
 }
 
-public class DoublyLinkedList<T>
+public class DoublyLinkedList<T> : IEnumerable<T>
 {
     internal Node<T>? Head;
 
     public long Count { get; internal set; }
 
-    // Testing methods
+    // Internal methods
 
     internal bool TryTraverse(bool forward)
     {
-        long nodes = 0;
-        Node<T>? node = Head;
+        if (Head is null)
+        {
+            return Count == 0;
+        }
 
-        while (node is not null)
+        long nodes = 0;
+        Node<T> node = Head;
+        do
         {
             node = forward ? node.Next : node.Previous;
             nodes++;
-            if (node == Head)
-            {
-                break;
-            }
-        }
+        } while (node != Head && nodes <= Count);
 
         return nodes == Count;
     }
@@ -48,25 +59,13 @@ public class DoublyLinkedList<T>
     internal void AssertValid()
     {
         Assert.IsTrue(Count >= 0);
-
-        if (Count == 0)
-        {
-            Assert.IsTrue(Head is null);
-        }
-        else if (Count == 1)
-        {
-            Assert.IsTrue(Head is not null);
-            Assert.IsTrue(Head.Previous is null);
-            Assert.IsTrue(Head.Next is null);
-        }
-
         Assert.IsTrue(TryTraverse(forward: true));
         Assert.IsTrue(TryTraverse(forward: false));
     }
 
-    // Required methods
+    // Public methods
 
-    public void Append(T value)
+    public void Add(T value)
     {
         if (Head is null)
         {
@@ -74,16 +73,110 @@ public class DoublyLinkedList<T>
         }
         else
         {
-            if (Head.Previous is null)
-            {
-                Node<T>.CreateLinkedNode(value, ref Head, ref Head);
-            }
-            else
-            {
-                Node<T>.CreateLinkedNode(value, ref Head.Previous, ref Head);
-            }
+            Node<T>.CreateLinkedNode(value, ref Head.Previous, ref Head);
         }
 
         Count++;
+    }
+
+    public void Insert(T value, long index)
+    {
+        if (index < 0 || index > Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        if (Head is null)
+        {
+            Head = new(value);
+            Count++;
+            return;
+        }
+
+        if (index == 0)
+        {
+            Node<T>.CreateLinkedNode(value, ref Head.Previous, ref Head);
+            Head = Head.Previous;
+            Count++;
+            return;
+        }
+
+        if (index <= Count / 2)
+        {
+            Node<T> node = Head;
+            for (long i = 0; i < index; i++)
+            {
+                node = node.Next;
+            }
+            Node<T>.CreateLinkedNode(value, ref node.Previous, ref node);
+        }
+        else
+        {
+            Node<T> node = Head.Previous;
+            for (long i = Count; i > index; i--)
+            {
+                node = node.Previous;
+            }
+            Node<T>.CreateLinkedNode(value, ref node, ref node.Next);
+        }
+
+        Count++;
+    }
+
+    public DoublyLinkedList<T> Clone()
+    {
+        DoublyLinkedList<T> result = [];
+        if (Head is null)
+        {
+            return result;
+        }
+
+        Node<T> node = Head;
+        do
+        {
+            result.Add(node.Value);
+            node = node.Next;
+        } while (node != Head);
+
+        return result;
+    }
+
+    public void Reverse()
+    {
+        if (Head is null || Count == 1)
+        {
+            return;
+        }
+
+        Node<T> head = Head.Previous;
+        Node<T> node = head;
+        do
+        {
+            (node.Previous, node.Next, node) = (node.Next, node.Previous, node.Previous);
+        } while (node != head);
+
+        Head = head;
+    }
+
+    // Interfaces
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        if (Head is null)
+        {
+            yield break;
+        }
+
+        Node<T> node = Head;
+        do
+        {
+            yield return node.Value;
+            node = node.Next;
+        } while (node != Head);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
