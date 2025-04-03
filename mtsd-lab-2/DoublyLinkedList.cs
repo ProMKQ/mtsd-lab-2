@@ -22,7 +22,7 @@ public sealed class Node<T>
         Next = next;
     }
 
-    internal static void CreateLinkedNode(T value, ref Node<T> previous, ref Node<T> next)
+    internal static void CreateLinkedNode(T value, Node<T> previous, Node<T> next)
     {
         Node<T> node = new(value, previous, next);
         previous.Next = node;
@@ -73,7 +73,7 @@ public class DoublyLinkedList<T> : IEnumerable<T>
         }
         else
         {
-            Node<T>.CreateLinkedNode(value, ref Head.Previous, ref Head);
+            Node<T>.CreateLinkedNode(value, Head.Previous, Head);
         }
 
         Count++;
@@ -95,7 +95,7 @@ public class DoublyLinkedList<T> : IEnumerable<T>
 
         if (index == 0)
         {
-            Node<T>.CreateLinkedNode(value, ref Head.Previous, ref Head);
+            Node<T>.CreateLinkedNode(value, Head.Previous, Head);
             Head = Head.Previous;
             Count++;
             return;
@@ -108,7 +108,7 @@ public class DoublyLinkedList<T> : IEnumerable<T>
             {
                 node = node.Next;
             }
-            Node<T>.CreateLinkedNode(value, ref node.Previous, ref node);
+            Node<T>.CreateLinkedNode(value, node.Previous, node);
         }
         else
         {
@@ -117,7 +117,7 @@ public class DoublyLinkedList<T> : IEnumerable<T>
             {
                 node = node.Previous;
             }
-            Node<T>.CreateLinkedNode(value, ref node, ref node.Next);
+            Node<T>.CreateLinkedNode(value, node, node.Next);
         }
 
         Count++;
