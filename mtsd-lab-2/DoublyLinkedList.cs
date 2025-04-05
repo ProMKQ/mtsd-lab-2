@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace mtsd_lab_2;
 
@@ -65,6 +66,29 @@ public class DoublyLinkedList<T> : IEnumerable<T>
         return node;
     }
 
+    internal T PopNode(Node<T> node)
+    {
+        T value = node.Value;
+
+        if (node == Head)
+        {
+            if (Count == 1)
+            {
+                Head = null;
+            }
+            else
+            {
+                Head = node.Next;
+            }
+        }
+
+        node.Previous.Next = node.Next;
+        node.Next.Previous = node.Previous;
+
+        Count--;
+        return value;
+    }
+
     internal bool TryTraverse(bool forward)
     {
         if (Head is null)
@@ -127,12 +151,20 @@ public class DoublyLinkedList<T> : IEnumerable<T>
 
     public T Delete(long index)
     {
-        throw new NotImplementedException();
+        return PopNode(NodeAtIndex(index));
     }
 
-    public void DeleteAll(T element)
+    public void DeleteAll(T item)
     {
-        throw new NotImplementedException();
+        Node<T>? node = Head;
+        for (long i = Count - 1; i >= 0; i--)
+        {
+            node = node!.Previous;
+            if (EqualityComparer<T>.Default.Equals(node.Value, item))
+            {
+                PopNode(node);
+            }
+        }
     }
 
     public T Get(long index)
@@ -143,46 +175,61 @@ public class DoublyLinkedList<T> : IEnumerable<T>
     public DoublyLinkedList<T> Clone()
     {
         DoublyLinkedList<T> result = [];
-        if (Head is null)
+        foreach (T item in this)
         {
-            return result;
+            result.Add(item);
         }
-
-        Node<T> node = Head;
-        do
-        {
-            result.Add(node.Value);
-            node = node.Next;
-        } while (node != Head);
 
         return result;
     }
 
     public void Reverse()
     {
-        if (Head is null || Count == 1)
+        if (Head is null)
         {
             return;
         }
 
         Head = Head.Previous;
-
         Node<T> node = Head;
+
         do
         {
-            (node.Previous, node.Next) = (node.Next, node.Previous);
-            node = node.Previous;
+            (node.Previous, node.Next, node) = (node.Next, node.Previous, node.Previous);
         } while (node != Head);
     }
 
     public long FindFirst(T element)
     {
-        throw new NotImplementedException();
+        foreach ((long index, T item) in this.Index())
+        {
+            if (EqualityComparer<T>.Default.Equals(item, element))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     public long FindLast(T element)
     {
-        throw new NotImplementedException();
+        if (Head is null)
+        {
+            return -1;
+        }
+
+        Node<T> node = Head;
+        for (long index = Count - 1; index >= 0; index--)
+        {
+            node = node.Previous;
+            if (EqualityComparer<T>.Default.Equals(node.Value, element))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     public void Clear()
@@ -191,9 +238,12 @@ public class DoublyLinkedList<T> : IEnumerable<T>
         Count = 0;
     }
 
-    public void Extend(DoublyLinkedList<T> list)
+    public void Extend(IEnumerable<T> list)
     {
-        throw new NotImplementedException();
+        foreach (T item in list)
+        {
+            Add(item);
+        }
     }
 
     // Interfaces

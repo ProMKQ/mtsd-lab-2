@@ -44,6 +44,53 @@ public sealed class Tests
     }
 
     [TestMethod]
+    public void Delete()
+    {
+        DoublyLinkedList<char> list = ['a', 'b', 'c', 'd'];
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Delete(4));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Delete(-1));
+
+        Assert.AreEqual('a', list.Delete(0));
+        Assert.AreEqual('c', list.Delete(1));
+        Assert.AreEqual('d', list.Delete(1));
+        Assert.AreEqual('b', list.Delete(0));
+
+        list.AssertValid();
+        Assert.IsFalse(Enumerable.Any(list));
+    }
+
+    [TestMethod]
+    public void DeleteAll()
+    {
+        DoublyLinkedList<char> list = ['x', 'a', 'b', 'x', 'x', 'c', 'x'];
+        list.DeleteAll('x');
+
+        list.AssertValid();
+        Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c'], list));
+
+        list.DeleteAll('c');
+        list.DeleteAll('a');
+        list.DeleteAll('b');
+
+        list.AssertValid();
+        Assert.IsFalse(Enumerable.Any(list));
+    }
+
+    [TestMethod]
+    public void Get()
+    {
+        DoublyLinkedList<char> list = ['a', 'b', 'c', 'd'];
+
+        Assert.AreEqual('a', list.Get(0));
+        Assert.AreEqual('b', list.Get(1));
+        Assert.AreEqual('c', list.Get(2));
+        Assert.AreEqual('d', list.Get(3));
+
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Get(4));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Get(-1));
+    }
+
+    [TestMethod]
     public void Clone()
     {
         DoublyLinkedList<char> list = ['a', 'b', 'c', 'd'];
@@ -62,5 +109,51 @@ public sealed class Tests
 
         list.AssertValid();
         Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c', 'd'], list));
+    }
+
+    [TestMethod]
+    public void FindFirst()
+    {
+        DoublyLinkedList<char> list = ['a', 'a', 'b', 'b', 'c', 'd'];
+        Assert.AreEqual(0, list.FindFirst('a'));
+        Assert.AreEqual(2, list.FindFirst('b'));
+        Assert.AreEqual(4, list.FindFirst('c'));
+        Assert.AreEqual(5, list.FindFirst('d'));
+        Assert.AreEqual(-1, list.FindFirst('e'));
+    }
+
+    [TestMethod]
+    public void FindLast()
+    {
+        DoublyLinkedList<char> list = ['d', 'b', 'a', 'a', 'c', 'c'];
+        Assert.AreEqual(3, list.FindLast('a'));
+        Assert.AreEqual(1, list.FindLast('b'));
+        Assert.AreEqual(5, list.FindLast('c'));
+        Assert.AreEqual(0, list.FindLast('d'));
+        Assert.AreEqual(-1, list.FindFirst('e'));
+    }
+
+    [TestMethod]
+    public void Clear()
+    {
+        DoublyLinkedList<char> list = ['a', 'b', 'c', 'd'];
+        list.Clear();
+
+        list.AssertValid();
+        Assert.IsFalse(Enumerable.Any(list));
+    }
+
+    [TestMethod]
+    public void Extend()
+    {
+        DoublyLinkedList<char> list1 = ['a', 'b'];
+        DoublyLinkedList<char> list2 = ['c', 'd', 'e'];
+        list1.Extend(list2);
+        list2.Extend(list1);
+
+        list1.AssertValid();
+        list2.AssertValid();
+        Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c', 'd', 'e'], list1));
+        Assert.IsTrue(Enumerable.SequenceEqual(['c', 'd', 'e', 'a', 'b', 'c', 'd', 'e'], list2));
     }
 }
