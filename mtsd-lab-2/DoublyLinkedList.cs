@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 
 namespace mtsd_lab_2;
 
@@ -214,15 +213,10 @@ public class DoublyLinkedList<T> : IEnumerable<T>
 
     public long FindLast(T element)
     {
-        if (Head is null)
-        {
-            return -1;
-        }
-
-        Node<T> node = Head;
+        Node<T>? node = Head;
         for (long index = Count - 1; index >= 0; index--)
         {
-            node = node.Previous;
+            node = node!.Previous;
             if (EqualityComparer<T>.Default.Equals(node.Value, element))
             {
                 return index;
