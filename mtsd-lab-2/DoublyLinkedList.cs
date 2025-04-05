@@ -22,11 +22,12 @@ public sealed class Node<T>
         Next = next;
     }
 
-    internal static void CreateLinkedNode(T value, Node<T> previous, Node<T> next)
+    internal static Node<T> CreateLinkedNode(T value, Node<T> previous, Node<T> next)
     {
         Node<T> node = new(value, previous, next);
         previous.Next = node;
         next.Previous = node;
+        return node;
     }
 }
 
@@ -37,6 +38,32 @@ public class DoublyLinkedList<T> : IEnumerable<T>
     public long Count { get; internal set; }
 
     // Internal methods
+
+    internal Node<T> NodeAtIndex(long index)
+    {
+        if (index < 0 || index >= Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        Node<T> node = Head!;
+        if (index <= Count / 2)
+        {
+            for (long i = 0; i < index; i++)
+            {
+                node = node.Next;
+            }
+        }
+        else
+        {
+            for (long i = Count; i > index; i--)
+            {
+                node = node.Previous;
+            }
+        }
+
+        return node;
+    }
 
     internal bool TryTraverse(bool forward)
     {
@@ -81,46 +108,36 @@ public class DoublyLinkedList<T> : IEnumerable<T>
 
     public void Insert(T value, long index)
     {
-        if (index < 0 || index > Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
-
         if (Head is null)
         {
             Head = new(value);
-            Count++;
-            return;
         }
-
-        if (index == 0)
+        else if (index == 0)
         {
-            Node<T>.CreateLinkedNode(value, Head.Previous, Head);
-            Head = Head.Previous;
-            Count++;
-            return;
-        }
-
-        if (index <= Count / 2)
-        {
-            Node<T> node = Head;
-            for (long i = 0; i < index; i++)
-            {
-                node = node.Next;
-            }
-            Node<T>.CreateLinkedNode(value, node.Previous, node);
+            Head = Node<T>.CreateLinkedNode(value, Head.Previous, Head);
         }
         else
         {
-            Node<T> node = Head.Previous;
-            for (long i = Count; i > index; i--)
-            {
-                node = node.Previous;
-            }
+            Node<T> node = NodeAtIndex(index - 1);
             Node<T>.CreateLinkedNode(value, node, node.Next);
         }
 
         Count++;
+    }
+
+    public T Delete(long index)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteAll(T element)
+    {
+        throw new NotImplementedException();
+    }
+
+    public T Get(long index)
+    {
+        return NodeAtIndex(index).Value;
     }
 
     public DoublyLinkedList<T> Clone()
@@ -148,14 +165,35 @@ public class DoublyLinkedList<T> : IEnumerable<T>
             return;
         }
 
-        Node<T> head = Head.Previous;
-        Node<T> node = head;
+        Head = Head.Previous;
+
+        Node<T> node = Head;
         do
         {
-            (node.Previous, node.Next, node) = (node.Next, node.Previous, node.Previous);
-        } while (node != head);
+            (node.Previous, node.Next) = (node.Next, node.Previous);
+            node = node.Previous;
+        } while (node != Head);
+    }
 
-        Head = head;
+    public long FindFirst(T element)
+    {
+        throw new NotImplementedException();
+    }
+
+    public long FindLast(T element)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Clear()
+    {
+        Head = null;
+        Count = 0;
+    }
+
+    public void Extend(DoublyLinkedList<T> list)
+    {
+        throw new NotImplementedException();
     }
 
     // Interfaces
