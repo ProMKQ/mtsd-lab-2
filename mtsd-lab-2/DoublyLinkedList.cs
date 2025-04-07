@@ -2,68 +2,34 @@
 
 namespace mtsd_lab_2;
 
-public sealed class Node<T>
-{
-    public Node<T>? Previous;
-    public Node<T>? Next;
-    public T Value;
-
-    internal Node(T value)
-    {
-        Value = value;
-    }
-
-    private Node(T value, Node<T>? previous, Node<T>? next)
-    {
-        Value = value;
-        Previous = previous;
-        Next = next;
-    }
-
-    internal static Node<T> CreateLinkedNode(T value, Node<T>? previous, Node<T>? next)
-    {
-        Node<T> node = new(value, previous, next);
-        if (previous is not null)
-        {
-            previous.Next = node;
-        }
-        if (next is not null)
-        {
-            next.Previous = node;
-        }
-        return node;
-    }
-}
-
 public class DoublyLinkedList<T> : IEnumerable<T>
 {
-    internal Node<T>? Head;
-    internal Node<T>? Tail;
+    internal LinkedList<T> list = [];
 
-    public long Count { get; internal set; }
+    public int Count => list.Count;
 
     // Internal methods
 
-    internal Node<T> NodeAtIndex(long index)
+    internal LinkedListNode<T> NodeAtIndex(int index)
     {
         if (index < 0 || index >= Count)
         {
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        Node<T> node;
+        LinkedListNode<T> node;
         if (index <= Count / 2)
         {
-            node = Head!;
-            for (long i = 0; i < index; i++)
+            node = list.First!;
+            for (int i = 0; i < index; i++)
             {
                 node = node.Next!;
             }
         }
         else
         {
-            node = Tail!;
-            for (long i = Count - 1; i > index; i--)
+            node = list.Last!;
+            for (int i = Count - 1; i > index; i--)
             {
                 node = node.Previous!;
             }
@@ -72,122 +38,53 @@ public class DoublyLinkedList<T> : IEnumerable<T>
         return node;
     }
 
-    internal T PopNode(Node<T> node)
-    {
-        T value = node.Value;
-
-        if (node == Head)
-        {
-            Head = node.Next;
-            if (Head is not null)
-            {
-                Head.Previous = null;
-            }
-            if (Count == 2)
-            {
-                Tail = null;
-            }
-        }
-        else if (node == Tail)
-        {
-            if (Count == 2)
-            {
-                Tail = null;
-                Head!.Next = null;
-            }
-            else
-            {
-                Tail = node.Previous;
-                Tail!.Next = null;
-            }
-        }
-        else
-        {
-            node.Previous!.Next = node.Next;
-            node.Next!.Previous = node.Previous;
-        }
-
-        Count--;
-        return value;
-    }
-
-    internal bool TryTraverse(bool forward)
-    {
-        long nodes = 0;
-        Node<T>? node = forward ? Head : (Tail ?? Head);
-
-        while (node is not null)
-        {
-            node = forward ? node.Next : node.Previous;
-            nodes++;
-        }
-
-        return nodes == Count;
-    }
-
-    internal void AssertValid()
-    {
-        Assert.IsTrue(Count >= 0);
-        Assert.IsTrue(TryTraverse(forward: true));
-        Assert.IsTrue(TryTraverse(forward: false));
-    }
-
     // Public methods
 
     public void Add(T value)
     {
-        if (Head is null)
-        {
-            Head = new(value);
-        }
-        else
-        {
-            Tail = Node<T>.CreateLinkedNode(value, Tail ?? Head, null);
-        }
-
-        Count++;
+        list.AddLast(value);
     }
 
-    public void Insert(T value, long index)
+    public void Insert(T value, int index)
     {
         if (index == Count)
         {
-            Add(value);
-            return;
+            list.AddLast(value);
         }
-
-        if (index == 0)
+        else if (index == 0)
         {
-            Head = Node<T>.CreateLinkedNode(value, null, Head);
+            list.AddFirst(value);
         }
         else
         {
-            Node<T> node = NodeAtIndex(index - 1);
-            Node<T>.CreateLinkedNode(value, node, node.Next);
+            LinkedListNode<T> node = NodeAtIndex(index - 1);
+            list.AddAfter(node, value);
         }
-
-        Count++;
     }
 
-    public T Delete(long index)
+    public T Delete(int index)
     {
-        return PopNode(NodeAtIndex(index));
+        LinkedListNode<T> node = NodeAtIndex(index);
+        T value = node.Value;
+        list.Remove(node);
+        return value;
     }
 
-    public void DeleteAll(T item)
+    public void DeleteAll(T value)
     {
-        Node<T>? node = Head;
+        LinkedListNode<T>? node = list.First;
         while (node is not null)
         {
-            if (EqualityComparer<T>.Default.Equals(node.Value, item))
+            LinkedListNode<T>? next = node.Next;
+            if (EqualityComparer<T>.Default.Equals(node.Value, value))
             {
-                PopNode(node);
+                list.Remove(node);
             }
-            node = node.Next;
+            node = next;
         }
     }
 
-    public T Get(long index)
+    public T Get(int index)
     {
         return NodeAtIndex(index).Value;
     }
@@ -195,31 +92,30 @@ public class DoublyLinkedList<T> : IEnumerable<T>
     public DoublyLinkedList<T> Clone()
     {
         DoublyLinkedList<T> result = [];
-        foreach (T item in this)
-        {
-            result.Add(item);
-        }
+        result.Extend(list);
 
         return result;
     }
 
     public void Reverse()
     {
-        Node<T>? node = Head;
+        LinkedList<T> reversed = [];
+        LinkedListNode<T>? node = list.Last;
 
         while (node is not null)
         {
-            (node.Previous, node.Next, node) = (node.Next, node.Previous, node.Next);
+            reversed.AddLast(node.Value);
+            node = node.Previous;
         }
 
-        (Head, Tail) = (Tail, Head);
+        list = reversed;
     }
 
-    public long FindFirst(T element)
+    public int FindFirst(T value)
     {
-        foreach ((long index, T item) in this.Index())
+        foreach ((int index, T item) in this.Index())
         {
-            if (EqualityComparer<T>.Default.Equals(item, element))
+            if (EqualityComparer<T>.Default.Equals(item, value))
             {
                 return index;
             }
@@ -228,12 +124,12 @@ public class DoublyLinkedList<T> : IEnumerable<T>
         return -1;
     }
 
-    public long FindLast(T element)
+    public int FindLast(T value)
     {
-        Node<T>? node = Tail ?? Head;
-        for (long index = Count - 1; index >= 0; index--)
+        LinkedListNode<T>? node = list.Last ?? list.First;
+        for (int index = Count - 1; index >= 0; index--)
         {
-            if (EqualityComparer<T>.Default.Equals(node!.Value, element))
+            if (EqualityComparer<T>.Default.Equals(node!.Value, value))
             {
                 return index;
             }
@@ -245,16 +141,14 @@ public class DoublyLinkedList<T> : IEnumerable<T>
 
     public void Clear()
     {
-        Head = null;
-        Tail = null;
-        Count = 0;
+        list.Clear();
     }
 
-    public void Extend(IEnumerable<T> list)
+    public void Extend(IEnumerable<T> enumerable)
     {
-        foreach (T item in list)
+        foreach (T item in enumerable)
         {
-            Add(item);
+            list.AddLast(item);
         }
     }
 
@@ -262,12 +156,7 @@ public class DoublyLinkedList<T> : IEnumerable<T>
 
     public IEnumerator<T> GetEnumerator()
     {
-        Node<T>? node = Head;
-        while (node is not null)
-        {
-            yield return node.Value;
-            node = node.Next;
-        }
+        return list.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()

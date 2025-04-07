@@ -21,14 +21,10 @@ public sealed class Tests
         DoublyLinkedList<char> list = [];
 
         list.Add('a');
-        list.AssertValid();
         list.Add('b');
-        list.AssertValid();
         list.Add('c');
-        list.AssertValid();
         list.Add('d');
-        list.AssertValid();
-
+        
         Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c', 'd'], list));
     }
 
@@ -38,16 +34,11 @@ public sealed class Tests
         DoublyLinkedList<char> list = [];
 
         list.Insert('b', 0);
-        list.AssertValid();
         list.Insert('c', 1);
-        list.AssertValid();
         list.Insert('a', 0);
-        list.AssertValid();
         list.Insert('d', 3);
-        list.AssertValid();
         list.Insert('x', 2);
-        list.AssertValid();
-
+        
         Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'x', 'c', 'd'], list));
 
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Insert('y', 6));
@@ -63,14 +54,10 @@ public sealed class Tests
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Delete(-1));
 
         Assert.AreEqual('a', list.Delete(0));
-        list.AssertValid();
         Assert.AreEqual('c', list.Delete(1));
-        list.AssertValid();
         Assert.AreEqual('d', list.Delete(1));
-        list.AssertValid();
         Assert.AreEqual('b', list.Delete(0));
-        list.AssertValid();
-
+        
         Assert.IsFalse(Enumerable.Any(list));
     }
 
@@ -80,16 +67,12 @@ public sealed class Tests
         DoublyLinkedList<char> list = ['x', 'a', 'b', 'x', 'x', 'c', 'x'];
 
         list.DeleteAll('x');
-        list.AssertValid();
 
         Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c'], list));
 
         list.DeleteAll('c');
-        list.AssertValid();
         list.DeleteAll('a');
-        list.AssertValid();
         list.DeleteAll('b');
-        list.AssertValid();
 
         Assert.IsFalse(Enumerable.Any(list));
     }
@@ -103,8 +86,7 @@ public sealed class Tests
         Assert.AreEqual('b', list.Get(1));
         Assert.AreEqual('c', list.Get(2));
         Assert.AreEqual('d', list.Get(3));
-        list.AssertValid();
-
+        
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Get(4));
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.Get(-1));
     }
@@ -115,7 +97,6 @@ public sealed class Tests
         DoublyLinkedList<char> list = ['a', 'b', 'c', 'd'];
 
         DoublyLinkedList<char> clone = list.Clone();
-        clone.AssertValid();
 
         Assert.AreNotSame(list, clone);
         Assert.IsTrue(Enumerable.SequenceEqual(list, clone));
@@ -127,8 +108,7 @@ public sealed class Tests
         DoublyLinkedList<char> list = ['d', 'c', 'b', 'a'];
 
         list.Reverse();
-        list.AssertValid();
-
+        
         Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c', 'd'], list));
     }
 
@@ -162,8 +142,7 @@ public sealed class Tests
         DoublyLinkedList<char> list = ['a', 'b', 'c', 'd'];
 
         list.Clear();
-        list.AssertValid();
-
+        
         Assert.IsFalse(Enumerable.Any(list));
     }
 
@@ -174,10 +153,7 @@ public sealed class Tests
         DoublyLinkedList<char> list2 = ['c', 'd', 'e'];
 
         list1.Extend(list2);
-        list1.AssertValid();
         list2.Extend(list1);
-        list1.AssertValid();
-        list2.AssertValid();
 
         Assert.IsTrue(Enumerable.SequenceEqual(['a', 'b', 'c', 'd', 'e'], list1));
         Assert.IsTrue(Enumerable.SequenceEqual(['c', 'd', 'e', 'a', 'b', 'c', 'd', 'e'], list2));
